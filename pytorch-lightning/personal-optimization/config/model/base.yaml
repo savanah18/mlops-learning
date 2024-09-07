@@ -1,0 +1,4 @@
+encoder:
+  layers:
+decoder:
+  layers:

@@ -1,0 +1,5 @@
+# TODO config for data loader
+train:
+  download: false
+test:
+  download: false

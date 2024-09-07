@@ -1,0 +1,8 @@
+max_epochs: 1
+gpus: 1
+learning_rate: 0.001
+batch_size: 100
+optimizer: adam #TODO use case
+regularization:
+  l2: 
+    weight_decay: 0.00 # non-zero but close to zero for L2 regularization
