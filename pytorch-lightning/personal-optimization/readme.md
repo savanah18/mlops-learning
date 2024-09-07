@@ -1,4 +1,4 @@
 # Simple Training 
 ```
-python3 train.py +training=base +data=mnist
+python3 main.py +training=base +data=mnist
 ```

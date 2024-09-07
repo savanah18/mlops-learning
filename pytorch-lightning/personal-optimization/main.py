@@ -15,13 +15,11 @@ from model import LitAutoEncoder
 @hydra.main(version_base=None, config_path="config")
 def main(config: DictConfig) -> None:
 
-    # load the dataset
+    # TODO: Seperata Data Preparation from Model Training
     train_set = MNIST(root="MNIST", download=config.data.train.download, train=True, transform=ToTensor())
-    # create validation set
     train_set_size = int(len(train_set) * 0.8) # TODO configurable split
     val_set_size = len(train_set) - train_set_size
 
-    # split the train set into two with seed 42
     seed = torch.Generator().manual_seed(42) #TODO seed should be configurable
     train_set, val_set = random_split(train_set, [train_set_size, val_set_size], generator=seed)
  
@@ -30,11 +28,10 @@ def main(config: DictConfig) -> None:
 
     # define the autoencoder
     autoencoder = LitAutoEncoder(Encoder(), Decoder(), config=config)
-
-    # train the model
     trainer = Trainer(limit_train_batches=config.training.batch_size , max_epochs=config.training.max_epochs)
     trainer.fit(autoencoder, train_dataloaders=train_loader, val_dataloaders=valid_loader)
 
+    # TODO Seperate model testing from training
     # test the model
     test_set = MNIST(root="MNIST", download=config.data.train.download, train=False, transform=ToTensor())
     test_loader= DataLoader(test_set)
