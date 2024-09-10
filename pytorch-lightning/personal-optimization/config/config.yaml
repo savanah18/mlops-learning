@@ -1,0 +1,9 @@
+defaults:
+  - training: base
+  - model: base
+  - data: mnist
+# logging
+logging: 
+  save_dir: logs
+  train:
+    name: autoencoder 

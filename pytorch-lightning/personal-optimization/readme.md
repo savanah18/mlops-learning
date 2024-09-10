@@ -1,4 +1,9 @@
 # Simple Training 
 ```
-python3 main.py +training=base +data=mnist
+python3 main.py
+```
+
+# Monitoring using tensorboard
+```
+tensorboard --logdir .
 ```

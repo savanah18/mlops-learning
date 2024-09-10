@@ -1,8 +1,17 @@
+# hyperparameters
 max_epochs: 1
 gpus: 1
 learning_rate: 0.001
 batch_size: 100
+limit_train_batches: 100
+limit_val_batches: 
+limit_test_batches: 
 optimizer: adam #TODO use case
 regularization:
   l2: 
     weight_decay: 0.00 # non-zero but close to zero for L2 regularization
+
+# debugging
+fast_dev_run: false # runs 5 batch of training, validation, test and prediction data through your trainer to see if there are any bugs. o change how many batches to use, change the argument to an integer
+num_sanity_val_steps: #runs N steps of validation in the beginning of training
+

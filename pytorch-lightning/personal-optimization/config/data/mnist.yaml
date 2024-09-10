@@ -1,5 +1,12 @@
 # TODO config for data loader
 train:
   download: false
+  dataloader: 
+    num_workers: 11
+valid:
+  dataloader: 
+    num_workers: 11
 test:
   download: false
+  dataloader: 
+    num_workers: 11
