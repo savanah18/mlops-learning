@@ -8,7 +8,7 @@ from torchvision.transforms import ToTensor
 from torch.optim.optimizer import Optimizer
 
 class Encoder(nn.Module):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.l1 = nn.Sequential(
             nn.Linear(28 * 28, 64),  # 28x28 is the size of the MNIST images,
@@ -20,7 +20,7 @@ class Encoder(nn.Module):
         return self.l1(x)
     
 class Decoder(nn.Module):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.l1 = nn.Sequential(
             nn.Linear(3, 64),

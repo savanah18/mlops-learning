@@ -1,0 +1,17 @@
+# general
+preproc:
+  train_val_split:
+    ratio: 0.8
+    seed: 42
+
+train:
+  _target_: datasets.MNISTDataSet
+  root: MNIST
+  download: false
+  train: true
+
+test:
+  _target_: datasets.MNISTDataSet
+  root: MNIST
+  download: false
+  train: false

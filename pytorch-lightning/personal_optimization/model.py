@@ -10,18 +10,21 @@ import hydra
 from omegaconf import DictConfig
 
 from modules import Encoder, Decoder
-from consts import (
-    DEFAULT_LEARNING_RATE
-)
 
 
 # create a lightning autoencoder
 class LitAutoEncoder(LightningModule):
-    def __init__(self, encoder: Encoder, decoder: Decoder, config: DictConfig):
+    def __init__(self,
+        encoder: Encoder, 
+        decoder: Decoder, 
+        learning_rate: float = 1e-3,
+        weight_decay: float = 0.0
+    ) -> None:
         super().__init__()
         self.encoder = encoder
         self.decoder = decoder
-        self.config = config
+        self.learning_rate = learning_rate
+        self.weight_decay = weight_decay
 
     def training_step(self, batch: Tensor, batch_idx: int) -> Tensor:
         x, _ = batch
@@ -53,7 +56,7 @@ class LitAutoEncoder(LightningModule):
         return test_loss
     
     def configure_optimizers(self) -> Optimizer:
-        lr = self.config.training.learning_rate
-        weight_decay = self.config.training.regularization.l2.weight_decay  
+        lr = self.learning_rate
+        weight_decay = self.weight_decay  
         optimizer = torch.optim.Adam(self.parameters(), lr=lr, weight_decay=weight_decay)
         return optimizer

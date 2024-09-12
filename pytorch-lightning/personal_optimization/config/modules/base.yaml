@@ -1,0 +1,7 @@
+root: personal_optimization
+encoder:
+  _target_: ${root}.modules.Encoder
+
+decoder:
+  _target_: ${root}.modules.Decoder
+

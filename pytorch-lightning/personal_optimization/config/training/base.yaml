@@ -1,0 +1,65 @@
+# hyperparameters
+max_epochs: 1
+gpus: 1
+learning_rate: 0.001
+batch_size: 100
+limit_train_batches: 100
+limit_val_batches: 
+limit_test_batches: 
+optimizer: adam #TODO use case
+regularization:
+  l2: 
+    weight_decay: 0.00 # non-zero but close to zero for L2 regularization
+
+# debugging
+fast_dev_run: false # runs 5 batch of training, validation, test and prediction data through your trainer to see if there are any bugs. o change how many batches to use, change the argument to an integer
+num_sanity_val_steps: #runs N steps of validation in the beginning of training
+
+#  class instantiation
+lit_auto_encoder:
+  _target_: model.LitAutoEncoder
+  encoder:
+    _target_: modules.Encoder
+  decoder:
+    _target_: modules.Decoder
+  learning_rate: ${..learning_rate}
+  weight_decay: ${..regularization.l2.weight_decay}
+
+trainer:
+  _target_: lightning.Trainer
+  limit_train_batches: ${..limit_train_batches}
+  limit_val_batches: ${..limit_val_batches}
+  limit_test_batches: ${..limit_test_batches}
+  max_epochs: ${..max_epochs}
+  # logging
+  logger:
+    _target_: lightning.pytorch.loggers.TensorBoardLogger
+    save_dir: logs
+    name: autoencoder
+  # debugging
+  fast_dev_run: ${..fast_dev_run}
+  num_sanity_val_steps: ${..num_sanity_val_steps}
+  # functional profiling
+  profiler: simple #simple|advanced
+    
+  # device profiling
+  #callbacks: [{_target_: lightning.pytorch.callbacks.DeviceStatsMonitor}]
+
+
+train_data_loader:
+  _target_: torch.utils.data.DataLoader
+  dataset:
+  num_workers: 11
+  batch_size: 
+
+valid_data_loader:
+  _target_: torch.utils.data.DataLoader
+  dataset:
+  num_workers: 11
+  batch_size: 32
+
+test_data_loader:
+  _target_: torch.utils.data.DataLoader
+  dataset:
+  num_workers: 11
+  batch_size: 32
