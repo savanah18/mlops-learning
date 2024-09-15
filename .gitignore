@@ -162,7 +162,7 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-pytorch-lightning/*/lightning_logs/
-pytorch-lightning/*/outputs/
-pytorch-lightning/*/MNIST/
-pytorch-lightning/*/logs/
+*lightning_logs/
+*outputs/
+*MNIST/
+*logs/
