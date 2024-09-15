@@ -40,7 +40,7 @@ trainer:
   fast_dev_run: ${..fast_dev_run}
   num_sanity_val_steps: ${..num_sanity_val_steps}
   # functional profiling
-  profiler: simple #simple|advanced
+  # profiler: simple #simple|advanced
     
   # device profiling
   #callbacks: [{_target_: lightning.pytorch.callbacks.DeviceStatsMonitor}]
@@ -49,7 +49,7 @@ trainer:
 train_data_loader:
   _target_: torch.utils.data.DataLoader
   dataset:
-  num_workers: 11
+  num_workers: 11 # number of threads
   batch_size: 
 
 valid_data_loader:
