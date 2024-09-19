@@ -7,11 +7,11 @@ preproc:
 train:
   _target_: datasets.MNISTDataSet
   root: MNIST
-  download: false
+  download: true
   train: true
 
 test:
   _target_: datasets.MNISTDataSet
   root: MNIST
-  download: false
+  download: true
   train: false

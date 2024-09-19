@@ -1,7 +1,11 @@
 defaults:
   - training: base
+  - eval: base
   - model: base
   - data: mnist
+  - _self_
+  - override hydra/hydra_logging: disabled  
+  - override hydra/job_logging: disabled  
 # logging
 logging: 
   save_dir: logs

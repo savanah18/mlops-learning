@@ -11,6 +11,9 @@ from omegaconf import DictConfig
 
 from modules import Encoder, Decoder
 
+# einiops
+from einops import rearrange
+
 
 # create a lightning autoencoder
 class LitAutoEncoder(LightningModule):
@@ -21,10 +24,22 @@ class LitAutoEncoder(LightningModule):
         weight_decay: float = 0.0
     ) -> None:
         super().__init__()
+        self.save_hyperparameters() #save the hyperparameters
         self.encoder = encoder
         self.decoder = decoder
         self.learning_rate = learning_rate
         self.weight_decay = weight_decay
+
+    def forward(self, x: Tensor) -> Tensor:
+        # x = x.view(x.size(0), -1) # flatten the image
+        # z = self.encoder(x)
+        # x_hat = self.decoder(z)
+        # return x_hat
+        x = rearrange(x, 'b c h w -> b (c h w)')
+        z = self.encoder(x)
+        x_hat = self.decoder(z)
+        x_hat = rearrange(x_hat, 'b (c h w) -> b c h w', c=1, h=28, w=28)
+        return x_hat
 
     def training_step(self, batch: Tensor, batch_idx: int) -> Tensor:
         x, _ = batch
@@ -57,6 +72,5 @@ class LitAutoEncoder(LightningModule):
     
     def configure_optimizers(self) -> Optimizer:
         lr = self.learning_rate
-        weight_decay = self.weight_decay  
-        optimizer = torch.optim.Adam(self.parameters(), lr=lr, weight_decay=weight_decay)
+        optimizer = torch.optim.Adam(self.parameters(), lr=lr, weight_decay=self.weight_decay)
         return optimizer

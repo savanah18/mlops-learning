@@ -28,7 +28,7 @@ if __name__ == "__main__":
 
     for epoch in range(epochs):
 
-        for x, y in tqdm(train_data_loader):
+        for x, y in tqdm(train_data_loader, desc=f'Epoch {epoch} of {epochs}'):
             x, y = x.to(device), y.to(device)
 
             y_pred = model(x)
