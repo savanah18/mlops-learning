@@ -1,5 +1,5 @@
 checkpoint:
-  base_dir: logs/autoencoder
+  base_dir: "../checkpoints/autoencoder"
   #override version, epoch and step in command line args if necessary
   version: 12 
   epoch: 0

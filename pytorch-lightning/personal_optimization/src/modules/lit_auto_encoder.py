@@ -9,11 +9,13 @@ from torch.nn import functional as F
 import hydra
 from omegaconf import DictConfig
 
-from modules import Encoder, Decoder
-
 # einiops
 from einops import rearrange
 
+from .blocks import (
+    Encoder,
+    Decoder
+)
 
 # create a lightning autoencoder
 class LitAutoEncoder(LightningModule):
@@ -24,11 +26,11 @@ class LitAutoEncoder(LightningModule):
         weight_decay: float = 0.0
     ) -> None:
         super().__init__()
-        self.save_hyperparameters() #save the hyperparameters
         self.encoder = encoder
         self.decoder = decoder
         self.learning_rate = learning_rate
         self.weight_decay = weight_decay
+        self.save_hyperparameters()
 
     def forward(self, x: Tensor) -> Tensor:
         x = rearrange(x, 'b c h w -> b (c h w)')

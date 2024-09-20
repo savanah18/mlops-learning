@@ -13,7 +13,7 @@ from model import LitAutoEncoder
 import hydra
 from hydra.utils import instantiate
 
-@hydra.main(config_path="config", config_name="config")
+@hydra.main(config_path="../config", config_name="config")
 def simple_eval(config):
     eval_config = config.eval
     print(eval_config)
@@ -22,7 +22,7 @@ def simple_eval(config):
     # Get current working directory absolute path
     cwd = hydra.utils.get_original_cwd()
     model: LitAutoEncoder = LitAutoEncoder.load_from_checkpoint(Path(cwd)/eval_config.checkpoint.path)
-    mnist_dm: LightningDataModule = instantiate(config.data.data_module)
+    mnist_dm: LightningDataModule = instantiate(config.data.datamodule)
     mnist_dm.setup("predict")
     predict_dataloader: DataLoader = mnist_dm.predict_dataloader()
 

@@ -17,11 +17,11 @@ num_sanity_val_steps: #runs N steps of validation in the beginning of training
 
 #  class instantiation
 lit_auto_encoder:
-  _target_: model.LitAutoEncoder
+  _target_: modules.lit_auto_encoder.LitAutoEncoder
   encoder:
-    _target_: modules.Encoder
+    _target_: modules.blocks.Encoder
   decoder:
-    _target_: modules.Decoder
+    _target_: modules.blocks.Decoder
   learning_rate: ${..learning_rate}
   weight_decay: ${..regularization.l2.weight_decay}
 

@@ -3,10 +3,10 @@ preproc:
   train_val_split:
     ratio: 0.8
     seed: 42
-    
-data_module:
-  _target_: data_module.MNISTDataModule
-  data_dir: ./data
+
+datamodule:
+  _target_: datamodules.mnist.MNISTDataModule
+  data_dir: "../data"
   batch_size: 32
   num_workers: 16
   train_val_split_ratio: ${..preproc.train_val_split.ratio}
