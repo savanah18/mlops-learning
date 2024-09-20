@@ -1,4 +1,4 @@
-# TODO Data Loaders
+# TO BE DEPRECATED
 from torch.utils.data.dataset import Dataset
 import torch
 from torch.utils.data import random_split

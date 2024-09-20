@@ -3,15 +3,11 @@ preproc:
   train_val_split:
     ratio: 0.8
     seed: 42
-
-train:
-  _target_: datasets.MNISTDataSet
-  root: MNIST
-  download: true
-  train: true
-
-test:
-  _target_: datasets.MNISTDataSet
-  root: MNIST
-  download: true
-  train: false
+    
+data_module:
+  _target_: data_module.MNISTDataModule
+  data_dir: ./data
+  batch_size: 32
+  num_workers: 16
+  train_val_split_ratio: ${..preproc.train_val_split.ratio}
+  train_val_split_seed: ${..preproc.train_val_split.seed}

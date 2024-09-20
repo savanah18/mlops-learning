@@ -45,21 +45,6 @@ trainer:
   # device profiling
   #callbacks: [{_target_: lightning.pytorch.callbacks.DeviceStatsMonitor}]
 
-
-train_data_loader:
-  _target_: torch.utils.data.DataLoader
-  dataset:
-  num_workers: 11 # number of threads
-  batch_size: 
-
-valid_data_loader:
-  _target_: torch.utils.data.DataLoader
-  dataset:
-  num_workers: 11
-  batch_size: 32
-
-test_data_loader:
-  _target_: torch.utils.data.DataLoader
-  dataset:
-  num_workers: 11
-  batch_size: 32
+  # accelerator
+  accelerator: gpu
+  devices: 1 #can use list or -1 to specify all

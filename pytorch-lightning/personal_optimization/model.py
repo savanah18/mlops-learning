@@ -31,10 +31,6 @@ class LitAutoEncoder(LightningModule):
         self.weight_decay = weight_decay
 
     def forward(self, x: Tensor) -> Tensor:
-        # x = x.view(x.size(0), -1) # flatten the image
-        # z = self.encoder(x)
-        # x_hat = self.decoder(z)
-        # return x_hat
         x = rearrange(x, 'b c h w -> b (c h w)')
         z = self.encoder(x)
         x_hat = self.decoder(z)
@@ -43,7 +39,7 @@ class LitAutoEncoder(LightningModule):
 
     def training_step(self, batch: Tensor, batch_idx: int) -> Tensor:
         x, _ = batch
-        x = x.view(x.size(0), -1) # flatten the image
+        x = rearrange(x, 'b c h w -> b (c h w)')
         z = self.encoder(x)
         x_hat = self.decoder(z)
         train_loss = F.mse_loss(x_hat, x)
@@ -53,7 +49,7 @@ class LitAutoEncoder(LightningModule):
     # define validation step
     def validation_step(self, batch: Tensor, batch_idx: int) -> Tensor:
         x, _ = batch
-        x = x.view(x.size(0), -1)
+        x = rearrange(x, 'b c h w -> b (c h w)')
         z = self.encoder(x)
         x_hat = self.decoder(z)
         val_loss = F.mse_loss(x_hat, x)
@@ -63,7 +59,7 @@ class LitAutoEncoder(LightningModule):
     # define test step
     def test_step(self, batch: Tensor, batch_idx: int) -> Tensor:
         x, _ = batch
-        x = x.view(x.size(0), -1)
+        x = rearrange(x, 'b c h w -> b (c h w)')
         z = self.encoder(x)
         x_hat = self.decoder(z)
         test_loss = F.mse_loss(x_hat, x)
