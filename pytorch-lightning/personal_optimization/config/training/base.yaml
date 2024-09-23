@@ -34,7 +34,7 @@ trainer:
   # logging
   logger:
     _target_: lightning.pytorch.loggers.TensorBoardLogger
-    save_dir: logs
+    save_dir: ../logs
     name: autoencoder
   # debugging
   fast_dev_run: ${..fast_dev_run}
