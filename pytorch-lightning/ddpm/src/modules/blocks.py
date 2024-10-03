@@ -5,7 +5,14 @@ from torch import nn
 import math
 from einops import rearrange
 
-class NoiseScheduler():
+# class BaseDiffusion():
+#     def __init__(self, scheduler='linear') -> None:    
+
+#     @abstractmethod
+#     def forward_diffusion(self, x_0: Tensor, t: int) -> Tensor:
+#         pass
+
+class GaussianDiffusion():
     def __init__(self, scheduler='linear') -> None:
         self.scheduler = scheduler
         self.betas = self._interpolate_beta()
@@ -136,7 +143,3 @@ class SimpleUnet(nn.Module):
         # C_0 x H x W -> C_in x H x W
         return self.output(x)
         #return x
-
-model = SimpleUnet()
-print("Num params: ", sum(p.numel() for p in model.parameters()))
-model
