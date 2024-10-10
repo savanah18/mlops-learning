@@ -1,0 +1,25 @@
+checkpoint:
+  base_dir: "../checkpoints/autoencoder"
+  #override version, epoch and step in command line args if necessary
+  version: 12 
+  epoch: 0
+  step: 100
+  path: '${.base_dir}/version_${.version}/checkpoints/epoch=${.epoch}-step=${.step}.ckpt'
+
+test_data_loader:
+  _target_: torch.utils.data.DataLoader
+  dataset:
+  num_workers: 8
+  batch_size: 32
+  shuffle: true
+
+lit_auto_encoder:
+  _target_: model.LitAutoEncoder
+
+  # override if we want
+  # encoder:
+  #   _target_: modules.Encoder
+  # decoder:
+  #   _target_: modules.Decoder
+  # learning_rate: ${..learning_rate}
+  # weight_decay: ${..regularization.l2.weight_decay}
