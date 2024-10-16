@@ -1,5 +1,5 @@
 dataset_params:
-  im_path: '/mnt/c/Users/Acer/Graduate/Courses/AI 222/mlops-learning/exporations/diffusion/data/train/images'
+  im_path: '/mnt/c/Users/Acer/Graduate/Courses/AI 222/mlops-learning/explorations/diffusion/data/train/images'
 
 diffusion_params:
   num_timesteps : 1000
@@ -25,4 +25,4 @@ train_params:
   num_samples : 100
   num_grid_rows : 10
   lr: 0.0001
-  ckpt_name: '/mnt/c/Users/Acer/Graduate/Courses/AI 222/mlops-learning/exporations/diffusion/ddpm_ckpt.pth'
+  ckpt_name: '/mnt/c/Users/Acer/Graduate/Courses/AI 222/mlops-learning/explorations/diffusion/ddpm_ckpt.pth'
