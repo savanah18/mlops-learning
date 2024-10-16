@@ -1,145 +1,175 @@
-# import necessary packages
 import torch
-from torch import Tensor
-from torch import nn
-import math
-from einops import rearrange
+from torch import (
+    nn,
+    Tensor
+)
+from einops import (
+    rearrange,
+    repeat
+)
 
-# class BaseDiffusion():
-#     def __init__(self, scheduler='linear') -> None:    
-
-#     @abstractmethod
-#     def forward_diffusion(self, x_0: Tensor, t: int) -> Tensor:
-#         pass
-
-class GaussianDiffusion():
-    def __init__(self, scheduler='linear') -> None:
-        self.scheduler = scheduler
-        self.betas = self._interpolate_beta()
-        self.alphas = (1 - self.betas)
-        self.alpha_bars = (torch.cumprod(self.alphas, axis=0))
-
-    def _interpolate_beta(self) -> Tensor:
-        match self.scheduler:
-            case 'linear':
-                return self._linear_beta_scheduler()
-            case _:
-                raise NotImplementedError(f"Scheduler {self.scheduler} not implemented")
-            
-    def _linear_beta_scheduler(self, timesteps=300, start=1e-4, end=2e-2) -> Tensor:
-        return torch.linspace(start, end, timesteps)
-    
-    # TODO other scheduler functions
-    
-    def forward_diffusion(self, x_0: Tensor, t: int) -> Tensor:
-        eps = torch.rand_like(x_0)
-        # parametric trick: x_t = sqrt(alpha_t) * x_0 + sqrt(1 - alpha_t) * eps
-        x_t = torch.sqrt(self.alpha_bars[t]) * x_0 + torch.sqrt(1 - self.alpha_bars[t]) * eps
-        return x_t, eps
-    
-
-
-
-class Block(nn.Module):
-    def __init__(self, in_ch, out_ch, time_emb_dim, up=False):
+class SinusoidalPositionalEncodingBlock(nn.Module):
+    def __init__(self, timesteps, t_emb_dim: int) -> None:
         super().__init__()
-        self.time_mlp =  nn.Linear(time_emb_dim, out_ch)
-        if up:
-            self.conv1 = nn.Conv2d(2*in_ch, out_ch, 3, padding=1)
-            self.transform = nn.ConvTranspose2d(out_ch, out_ch, 4, 2, 1)
-        else:
-            self.conv1 = nn.Conv2d(in_ch, out_ch, 3, padding=1)
-            self.transform = nn.Conv2d(out_ch, out_ch, 4, 2, 1)
-        self.conv2 = nn.Conv2d(out_ch, out_ch, 3, padding=1)
-        self.bnorm1 = nn.BatchNorm2d(out_ch)
-        self.bnorm2 = nn.BatchNorm2d(out_ch)
-        self.relu  = nn.ReLU()
-        
-    def forward(self, x, t, ):
-        # First Conv
-        h = self.bnorm1(self.relu(self.conv1(x)))
-        # Time embedding
-        time_emb = self.relu(self.time_mlp(t))
-        # Extend last 2 dimensions
-        #time_emb = time_emb[(..., ) + (None, ) * 2]
-        time_emb = rearrange(time_emb, '... -> ... 1 1')
-        # Add time channel
-        h = h + time_emb
-        # Second Conv
-        h = self.bnorm2(self.relu(self.conv2(h)))
-        # Down or Upsample
-        return self.transform(h)
+        self.timesteps = timesteps
+        self.t_emb_dim = t_emb_dim
 
-
-class SinusoidalPositionEmbeddings(nn.Module):
-    def __init__(self, dim):
-        super().__init__()
-        self.dim = dim
-
-    def forward(self, time):
-        device = time.device
-        half_dim = self.dim // 2
-        embeddings = math.log(10000) / (half_dim - 1)
-        embeddings = torch.exp(torch.arange(half_dim, device=device) * -embeddings)
-        embeddings = time[:, None] * embeddings[None, :]
-        embeddings = torch.cat((embeddings.sin(), embeddings.cos()), dim=-1)
-        # TODO: Double check the ordering here
-        return embeddings
-
-
-class SimpleUnet(nn.Module):
-    """
-    A simplified variant of the Unet architecture.
-    """
-    def __init__(self):
-        super().__init__()
-        image_channels = 3 #RGB
-        down_channels = (64, 128, 256, 512, 1024) # Downsample
-        up_channels = (1024, 512, 256, 128, 64) # Upsample
-        out_dim = 3 
-        time_emb_dim = 32
-
-        # Time embedding
-        self.time_mlp = nn.Sequential(
-                SinusoidalPositionEmbeddings(time_emb_dim),
-                nn.Linear(time_emb_dim, time_emb_dim),
-                nn.ReLU()
+    def forward(self) -> Tensor:
+        factor = 1e4 ** ((
+            torch.arange(
+                start = 0,
+                end = self.t_emb_dim // 2,
+                device = self.timesteps.device,
+                ) / (self.t_emb_dim // 2)
             )
-        
-        # Initial projection
-        self.conv0 = nn.Conv2d(image_channels, down_channels[0], 3, padding=1)
+        )
+        t_emb = repeat(rearrange(self.timesteps, 't -> t 1'), 't 1 -> t d', d = self.t_emb_dim // 2) / factor
+        return torch.cat([torch.sin(t_emb), torch.cos(t_emb)], dim = -1)
 
-        # Downsample
-        self.downs = nn.ModuleList([Block(down_channels[i], down_channels[i+1], \
-                                    time_emb_dim) \
-                    for i in range(len(down_channels)-1)])
-        # Upsample
-        self.ups = nn.ModuleList([Block(up_channels[i], up_channels[i+1], \
-                                        time_emb_dim, up=True) \
-                    for i in range(len(up_channels)-1)])
-        
-        # Edit: Corrected a bug found by Jakub C (see YouTube comment)
-        self.output = nn.Conv2d(up_channels[-1], out_dim, 1)
+class TimeProjectionBlock(nn.Module):
+    def __init__(self, t_emb_dim: int) -> None:
+        super().__init__()
+        self.t_emb_dim = t_emb_dim
+        self.t_proj = nn.Sequential(
+            nn.Linear(t_emb_dim, t_emb_dim),
+            nn.SiLU(),
+            nn.Linear(t_emb_dim, t_emb_dim)
+        )
+    
+    def forward(self, t: Tensor) -> Tensor:
+        return self.t_proj(t)
+    
+class ResnetConvBlock(nn.Module):
+    def __init__(
+            self, 
+            in_channels: int, 
+            out_channels: int,
+            kernel_size: int = 3,
+            padding: int = 1,
+            stride: int = 1, 
+            groups: int = 8,
+        ):
+        super().__init__()
+        self.resnet_conv = nn.Sequential(
+            nn.GroupNorm(groups, in_channels),
+            nn.SiLU(),
+            nn.Conv2d(in_channels, out_channels, kernel_size = kernel_size, padding = padding, stride=stride),
+        )
 
-    def forward(self, x, timestep):
-        # Embedd time
-        t = self.time_mlp(timestep) #Txemb_dim
-        # Initial conv
-        x = self.conv0(x) # C_in x H x W -> C_0 x H x W
+    def forward(self, x: Tensor) -> Tensor:
+        return self.resnet_conv(x)
+    
+class ResnetAttentionBlock(nn.Module):
+    def __init__(
+            self,
+            in_channels: int,
+            num_heads: int = 8,
+            groups: int = 8,
+        )-> None:
+        super().__init__()
+        self.attention_norm = nn.GroupNorm(8, in_channels)
+        self.attention = nn.MultiheadAttention(
+            embed_dim = in_channels,
+            num_heads = 4,
+            batch_first=True
+        )
+    
+    def forward(self, x: Tensor) -> Tensor:
+        B, C, H, W = x.shape
+        x = rearrange(x, 'b c h w -> b c (h w)')
+        x = self.attention_norm(x)
+        x = rearrange(x, 'b c (h w) -> b (h w) c', h=H, w=W)
+        x, _ = self.attention(x, x, x)
+        x = rearrange(x, 'b (h w) c -> b c h w', h=H, w=W)
+        return x
+    
+class UNetDownBlock(nn.Module):
+    def __init__(
+            self,
+            in_channels: int,
+            out_channels: int,
+            t_emb_dim: int,
+            down_sample: bool = True,
+            num_heads: int = 4,
+        ) -> None:
+        super().__init__() 
+        self.resnet_conv_1 = ResnetConvBlock(in_channels, out_channels)
+        self.t_emb_layers = nn.Sequential(
+            nn.SiLU(),
+            nn.Linear(t_emb_dim, out_channels)
+        )
+        self.resnet_conv_2 = ResnetConvBlock(out_channels, out_channels)
+        self.resnet_attention = ResnetAttentionBlock(out_channels, num_heads)
 
-        # Unet
-        ## Downsample C_0 x H x W -> C_N x H_out x W_out
-        residual_inputs = []
-        for down in self.downs:
-            x = down(x, t)
-            residual_inputs.append(x)
-        ## Upsample C_N x H_out x W_out -> C_0 x H x W
-        for up in self.ups:
-            residual_x = residual_inputs.pop()
-            # Add residual x as additional channels
-            x = torch.cat((x, residual_x), dim=1)           
-            x = up(x, t)
-        
-        # C_0 x H x W -> C_in x H x W
-        return self.output(x)
-        #return x
+        self.residual_input_conv =  nn.Conv2d(in_channels, out_channels, 1)
+        self.down_sample = nn.Conv2d(out_channels, out_channels, 4, 2, 1) if down_sample else nn.Identity()
+
+    def forward(self, x: Tensor, t_emb: Tensor) -> Tensor:
+        out = x
+        resnet_input = x
+        out = self.resnet_conv_1(out)
+        # add time embedding
+        out += rearrange(self.t_emb_layers(t_emb), 'b c -> b c 1 1') #??
+        out = self.resnet_conv_2(out)        
+        # add residual connection
+        out += self.residual_input_conv(resnet_input)
+        # apply attention
+        out_attn = self.resnet_attention(out)
+        # apply second skip connection
+        out += out_attn
+        # downsample if necessary
+        out = self.down_sample(out)
+        return out
+    
+class UNetMidBlock(nn.Module):
+    def __init__(
+            self,
+            in_channels: int,
+            out_channels: int,
+            t_emb_dim: int,
+            num_heads: int = 4,
+        ) -> None:
+        super().__init__()
+        self.resnet_conv_1 = nn.ModuleList([
+            ResnetConvBlock(in_channels, out_channels),
+            ResnetConvBlock(out_channels, out_channels)
+        ])
+        self.t_emb_layers = nn.ModuleList([
+            nn.Sequential(
+                nn.SiLU(),
+                nn.Linear(t_emb_dim, out_channels)
+            ),
+            nn.Sequential(
+                nn.SiLU(),
+                nn.Linear(t_emb_dim, out_channels)
+            )
+        ])
+        self.resnet_conv_2 = nn.ModuleList([
+            ResnetConvBlock(out_channels, out_channels),
+            ResnetConvBlock(out_channels, out_channels)
+        ])
+        self.resnet_attention = ResnetAttentionBlock(out_channels, num_heads)
+        self.residual_input_conv = nn.ModuleList([
+            nn.Conv2d(in_channels, out_channels, 1),
+            nn.Conv2d(out_channels, out_channels, 1)
+        ])
+
+    def forward(self, x: Tensor, t_emb: Tensor) -> Tensor:
+        out = x
+        resnet_input = x
+
+        out = self.resnet_conv_1[0](out)
+        out += rearrange(self.t_emb_layers[0](t_emb), 'b c -> b c 1 1') #??
+        out = self.resnet_conv_2[0](out)
+        out = out + self.residual_input_conv[0](resnet_input)
+
+        out_attn = self.resnet_attention(out)
+        out = out + out_attn
+
+        resnet_input = out
+        out = self.resnet_conv_1[1](out)
+        out += rearrange(self.t_emb_layers[1](t_emb), 'b c -> b c 1 1')
+        out = self.resnet_conv_2[1](out)
+        out = out + self.residual_input_conv[1](resnet_input)
+
+        return out
