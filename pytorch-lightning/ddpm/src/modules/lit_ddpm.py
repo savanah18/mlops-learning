@@ -1,0 +1,58 @@
+# import necessary libraries
+import torch
+from lightning import LightningModule
+from torch import Tensor
+from torch.optim.optimizer import Optimizer
+from torch.nn import functional as F
+from torch.optim.lr_scheduler import LinearWarmupCosineAnnealingLR
+
+# configuration management
+import hydra
+from omegaconf import DictConfig
+
+# einiops
+from einops import rearrange
+from diffusion import LinearNoiseScheduler
+from unet import UNet
+
+class LitDDPM(LightningModule):
+    def __init__(
+            self,
+            scheduler,
+            model,
+            *args,
+            **kwargs
+        ) -> None:
+        super().__init__()
+        self.scheduler = scheduler
+        self.model = model
+        self.model_args = kwargs['model_args']
+        self.training_args = kwargs['training_args']
+
+    
+    def training_step(self, batch: Tensor, batch_idx: int) -> Tensor:
+        x = batch
+        noise = torch.rand_like(x)
+        t = torch.randint(0, self.model_args['num_timesteps'], (x.shape[0],))
+        x_t = self.scheduler.forward_process(x, noise, t)
+        noise_pred = self.model(x_t, t)
+
+        loss = F.mse_loss(noise_pred, noise)
+        self.log('train_loss', loss)
+        return loss
+    
+    def validation_step(self, batch: Tensor, batch_idx: int) -> Tensor:
+        pass
+        # TODO
+
+    def test_step(self, batch: Tensor, batch_idx: int) -> Tensor:
+        pass
+        # TODO
+
+    def configure_optimizers(self) -> Optimizer:
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=self.training_args['learning_rate'])
+        scheduler= LinearWarmupCosineAnnealingLR(optimizer, warmup_epochs=self.training_args['warmup_epochs'], max_epochs=self.training_args['max_epochs'])   
+        return [optimizer], [scheduler]
+
+
+            
