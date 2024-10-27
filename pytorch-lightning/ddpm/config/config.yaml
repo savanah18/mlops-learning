@@ -1,0 +1,14 @@
+defaults:
+  - training: base
+  - eval: base
+  - model: base
+  - data: mnist_custom
+  - sample: base
+  - _self_
+  - override hydra/hydra_logging: disabled  
+  - override hydra/job_logging: disabled  
+# logging
+logging: 
+  save_dir: logs
+  train:
+    name: ddpm-base 

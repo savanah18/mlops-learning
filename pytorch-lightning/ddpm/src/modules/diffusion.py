@@ -1,6 +1,10 @@
 import torch
 from einops import rearrange
 
+class NoiseScheduler():
+    def __init__() -> None:
+        pass
+
 class LinearNoiseScheduler:
     def __init__(self, num_timesteps, beta_start, beta_end):
         self.num_timesteps = num_timesteps

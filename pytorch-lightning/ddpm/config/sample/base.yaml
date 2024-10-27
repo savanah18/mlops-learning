@@ -1,0 +1,16 @@
+sampling:
+  model_ckpt: "../logs/ddpm-base/version_14/checkpoints/epoch=19-step=1280.ckpt"
+  device: 'cuda'
+  num_samples: 100
+  model_config:
+    im_channels: 1
+    im_size: 
+      h: 28
+      w: 28
+  scheduler_config:
+    num_timesteps: 1000
+    beta_start: 0.0001
+    beta_end: 0.02
+  visualization:
+    task_name: 'ddpm-base'
+    num_grid_rows: 10
