@@ -33,12 +33,18 @@ class LitDDPM(LightningModule):
 
     
     def training_step(self, batch: Tensor, batch_idx: int) -> Tensor:
-        x, _ = batch
-        #self.log(x.shape, type(x))
-        noise = torch.rand_like(x)
-        t = torch.randint(0, self.model_args['num_timesteps'], (x.shape[0],)).to(x.device)
-        x_t = self.scheduler.forward_process(x, noise, t)
-        noise_pred = self.model(x_t, t)
+        im, _ = batch
+        im = im.float()
+        
+        # Sample random noise
+        noise = torch.randn_like(im)
+        
+        # Sample timestep
+        t = torch.randint(0, self.model_args['num_timesteps'], (im.shape[0],)).to(im.device)
+        
+        # Add noise to images according to timestep
+        noisy_im = self.scheduler.forward_process(im, noise, t)
+        noise_pred = self.model(noisy_im, t)
 
         #loss = F.mse_loss(noise_pred, noise)
         loss = torch.nn.MSELoss()(noise_pred, noise)

@@ -206,7 +206,8 @@ class UNet(nn.Module):
             mid_channels: list = [256, 256, 128],
             t_emb_dim: int = 128,
             down_sample: list = [True, True, False],
-            num_heads: int = 4
+            num_heads: int = 4,
+            **kwargs
         ) -> None:
         super().__init__()
         self.im_channels = im_channels

@@ -1,5 +1,5 @@
 sampling:
-  model_ckpt: "../logs/ddpm-base/version_14/checkpoints/epoch=19-step=1280.ckpt"
+  model_ckpt: "../logs/ddpm-base/version_18/checkpoints/epoch=19-step=1280.ckpt"
   device: 'cuda'
   num_samples: 100
   model_config:
