@@ -19,9 +19,9 @@ model_params:
   num_heads : 4
 
 train_params:
-  task_name: 'default'
+  task_name: 'old'
   batch_size: 64
-  num_epochs: 40
+  num_epochs: 20
   num_samples : 100
   num_grid_rows : 10
   lr: 0.0001
