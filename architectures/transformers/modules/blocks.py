@@ -20,7 +20,8 @@ class EncoderBlock(nn.Module):
         self.model_params = model_params
         self.mha = nn.MultiheadAttention(
             embed_dim=model_params.d_model, 
-            num_heads=model_params.num_heads)
+            num_heads=model_params.num_heads,
+            batch_first=True)
         self.norm1 = nn.LayerNorm(model_params.d_model)
 
         self.ffn = nn.Sequential(
@@ -31,7 +32,8 @@ class EncoderBlock(nn.Module):
         self.norm2 = nn.LayerNorm(model_params.d_model)
 
     def forward(self, q, k, v):
-        x = self.norm1(self.mha(q, k, v)) + x # modern arch norm first before residual connection
+        # mha returns both output and attention weights, we only need the output
+        x = self.norm1(self.mha(q, k, v)[0]) + q # modern arch norm first before residual connection
         x = self.norm2(self.ffn(x) ) + x 
         return x
 
@@ -42,12 +44,14 @@ class DecoderBlock(nn.Module):
         self.model_params = model_params
         self.mha1 = nn.MultiheadAttention(
             embed_dim=model_params.d_model, 
-            num_heads=model_params.num_heads)
+            num_heads=model_params.num_heads,
+            batch_first=True)
         self.norm1 = nn.LayerNorm(model_params.d_model)
 
         self.mha2 = nn.MultiheadAttention(
             embed_dim=model_params.d_model, 
-            num_heads=model_params.num_heads)
+            num_heads=model_params.num_heads,
+            batch_first=True)
         self.norm2 = nn.LayerNorm(model_params.d_model)
 
         self.ffn = nn.Sequential(
@@ -57,8 +61,23 @@ class DecoderBlock(nn.Module):
         )
         self.norm3 = nn.LayerNorm(model_params.d_model)
 
-    def forward(self, x, enc_x):
-        x = self.norm1(self.mha1(x, x, x)) + x # modern arch norm first before residual connection
-        x = self.norm2(self.mha2(x, enc_x, enc_x)) + x 
+    def forward(self, q, k, v, enc_x):
+        x = self.norm1(self.mha1(q, k, v)[0]) + q # modern arch norm first before residual connection
+        x = self.norm2(self.mha2(x, enc_x, enc_x)[0]) + x 
         x = self.norm3(self.ffn(x) ) + x 
         return x
+
+if __name__ == "__main__":
+    from configs import ModelParams
+    model_params = ModelParams()
+    x=torch.rand(2, model_params.max_len, model_params.d_model) #BxLxd
+    y=torch.rand(2, model_params.max_len, model_params.d_model) #BxLxd
+
+    with torch.no_grad():
+        encoder_block = EncoderBlock(model_params)
+        out = encoder_block(x, x, x)
+        assert out.shape == (2, model_params.max_len, model_params.d_model)
+
+        decoder_block = DecoderBlock(model_params)
+        out = decoder_block(y, y, y, out)
+        assert out.shape == (2, model_params.max_len, model_params.d_model)

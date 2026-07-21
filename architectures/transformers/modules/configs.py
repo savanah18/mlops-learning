@@ -6,7 +6,8 @@ class ModelParams:
     d_model: int = 512
     max_len: int = 5000
 
-    vocab_size: int = 10000
+    in_vocab_size: int = 10000
+    out_vocab_size: int = 10000
     embedding_dim: int = 512
     padding_idx: int = 0
     max_norm: float = None
