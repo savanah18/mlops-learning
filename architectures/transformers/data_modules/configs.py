@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 @dataclass
 class DatasetParams:
@@ -8,6 +8,6 @@ class DatasetParams:
 @dataclass
 class TokenizerParams:
     """Tokenizer parameters for the transformer model."""
-    tokenizer_name: str = "basic_english"
-    tokenizer_args: dict = None  # Additional arguments for the tokenizer, if needed
-    tokenizer_kwargs: dict = None  # Additional keyword arguments for the tokenizer, if needed
+    tokenizer_name: str = "jcblaise/roberta-tagalog-base"
+    tokenizer_args: dict = field(default_factory=dict) # Additional arguments for the tokenizer, if needed
+    tokenizer_kwargs: dict = field(default_factory=dict) # Additional keyword arguments for the tokenizer, if needed
