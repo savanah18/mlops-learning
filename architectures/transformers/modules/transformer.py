@@ -1,8 +1,8 @@
 import torch
 from torch import nn
 
-from configs import ModelParams
-from blocks import PositionalEncoding, EncoderBlock, DecoderBlock
+from .configs import ModelParams
+from .blocks import PositionalEncoding, EncoderBlock, DecoderBlock
 
 
 
@@ -15,6 +15,7 @@ class Decoder():
         pass
 
 # Traditional Seq2Seq Translator 
+# TODO Causal Masking for the decoder, and padding masking for both encoder and decoder
 class Translator(nn.Module):
     def __init__(self, model_params: ModelParams):
         super().__init__()
@@ -38,7 +39,9 @@ class Translator(nn.Module):
             ) # Bx* -> B x * x embedding_dim
 
         # define the positional encoding layer
-        self.pe = PositionalEncoding(d_model=model_params.d_model, max_len=model_params.max_len).pe
+        pe = PositionalEncoding(d_model=model_params.d_model, max_len=model_params.max_len).pe
+        # register pe to bugger
+        self.register_buffer('pe', pe)
 
         # define the encoder and decoder blocks
         self.encoder_blocks = nn.ModuleList(

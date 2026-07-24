@@ -1,5 +1,6 @@
+from torch.utils.data import Dataset, DataLoader
 from datasets import load_dataset, load_from_disk
-from configs import DatasetParams
+from .configs import DatasetParams
 # class Dataset:
 #     """Dataset class for loading and processing datasets."""
 
@@ -11,12 +12,13 @@ from configs import DatasetParams
 #         """Returns the loaded dataset."""
 #         return self.dataset
 
-class TagalogEnglishDataloader():
-    """Dataloader class for loading and processing the Tagalog-English dataset."""
+# class TagalogEnglishDataloader(DataLoader):
+#     """Dataloader class for loading and processing the Tagalog-English dataset."""
 
-    def __init__(self, dataset_name: str, split: str = "train"):
-        self.dataset_name = dataset_name
-        self.dataset = load_dataset(dataset_name, split=split)    
+#     def __init__(self, dataset_name: str, split: str = "train"):
+#         super
+#         self.dataset_name = dataset_name
+#         self.dataset = load_dataset(dataset_name, split=split)
 
 
 if __name__ == "__main__":

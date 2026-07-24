@@ -4,6 +4,8 @@ from dataclasses import dataclass, field
 class DatasetParams:
     """Dataset parameters for the transformer model."""
     dataset_name: str = "rhyliieee/tagalog-filipino-english-translation"
+    source_language: str = "tagalog"
+    target_language: str = "english"
 
 @dataclass
 class TokenizerParams:
